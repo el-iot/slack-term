@@ -27,6 +27,7 @@ type Config struct {
 	ThreadsWidth int                   `json:"threads_width"`
 	KeyMap       map[string]keyMapping `json:"key_map"`
 	Theme        Theme                 `json:"theme"`
+	UnreadOnly   bool                  `json:"show_unread_only"`
 }
 
 type keyMapping map[string]string
@@ -102,6 +103,7 @@ func getDefaultConfig() Config {
 		ThreadsWidth: 1,
 		Notify:       "",
 		Emoji:        false,
+		UnreadOnly:   false,
 		KeyMap: map[string]keyMapping{
 			"command": {
 				"i":          "mode-insert",
