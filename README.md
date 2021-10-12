@@ -1,6 +1,8 @@
 slack-term
 ==========
 
+Note: This is a fork of `erroneousboat/slack-term` project, with some commits cherry-picked from `acaloiaro/slack-term` and some additional changes that I've since made myself. This is not a live fork.
+
 A [Slack](https://slack.com) client for your terminal.
 
 ![Screenshot](/screenshot.png?raw=true)
