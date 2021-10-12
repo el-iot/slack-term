@@ -50,6 +50,7 @@ var actionMap = map[string]func(*context.AppContext){
 	"chat-up":             actionScrollUpChat,
 	"chat-down":           actionScrollDownChat,
 	"help":                actionHelp,
+	// TODO: add clear-search
 }
 
 // Initialize will start a combination of event handlers and 'background tasks'
@@ -191,12 +192,12 @@ func messageHandler(ctx *context.AppContext) {
 func actionKeyEvent(ctx *context.AppContext, ev termbox.Event) {
 
 	keyStr := getKeyString(ev)
-
 	// Get the action name (actionStr) from the key that
 	// has been pressed. If this is found try to uncover
 	// the associated function with this key and execute
 	// it.
 	actionStr, ok := ctx.Config.KeyMap[ctx.Mode][keyStr]
+
 	if ok {
 		action, ok := actionMap[actionStr]
 		if ok {
@@ -205,8 +206,8 @@ func actionKeyEvent(ctx *context.AppContext, ev termbox.Event) {
 	} else {
 		if ctx.Mode == context.InsertMode && ev.Ch != 0 {
 			actionInput(ctx.View, ev.Ch)
-		} else if ctx.Mode == context.SearchMode && ev.Ch != 0 {
-			actionSearch(ctx, ev.Ch)
+		} else if ctx.Mode == context.SearchMode {
+			actionSearch(ctx, keyStr, ev.Ch)
 		}
 	}
 }
@@ -382,28 +383,24 @@ func actionSend(ctx *context.AppContext) {
 // actionSearch will search through the channels based on the users
 // input. A time is implemented to make sure the actual searching
 // and changing of channels is done when the user's typing is paused.
-func actionSearch(ctx *context.AppContext, key rune) {
-	actionInput(ctx.View, key)
+func actionSearch(ctx *context.AppContext, keyStr string, key rune) {
 
-	go func() {
-		if scrollTimer != nil {
-			scrollTimer.Stop()
-		}
-
-		scrollTimer = time.NewTimer(time.Second / 4)
-		<-scrollTimer.C
-
-		// Only actually search when the time expires
+	if keyStr == "<enter>" {
+		// Pressed enter
 		term := ctx.View.Input.GetText()
+		ctx.View.Debug.Println(fmt.Sprintf("searching: %v", term))
 		resultCount := ctx.View.Channels.Search(term)
 		ctx.View.Channels.List.BorderLabel = fmt.Sprintf("Search: %v (%v)", term, resultCount)
 
 		if resultCount > 0 {
 			actionChangeChannel(ctx)
 		} else {
-			actionClearChat(ctx, term)
+			actionNoResults(ctx, term)
 		}
-	}()
+		actionClearInput(ctx)
+		return
+	}
+	actionInput(ctx.View, key)
 }
 
 // actionQuit will exit the program by using os.Exit, this is
@@ -490,8 +487,8 @@ func actionMoveCursorDownChannels(ctx *context.AppContext) {
 		c := ctx.View.Channels
 
 		if chn, ok := c.GetNextChannel(); ok {
-
 			c.SetSelectedChannel(chn.ID)
+			ctx.View.Debug.Println(fmt.Sprintf("setting selected: %v", chn.Name))
 			c.ScrollToChannel(chn.ID)
 		} else {
 			return
@@ -605,16 +602,14 @@ func actionChangeChannel(ctx *context.AppContext) {
 	ctx.Focus = context.ChatFocus
 }
 
-func actionClearChat(ctx *context.AppContext, searchTerm string) {
+func actionNoResults(ctx *context.AppContext, searchTerm string) {
 	// Clear messages from Chat pane
 	ctx.View.Chat.ClearMessages()
-
 	// Add a message stating that no results were found in the chat-pane
-	var messages = []components.Message{{Content: fmt.Sprintf("No Search Results Found For %v", searchTerm)}}
-	ctx.View.Chat.SetMessages(messages)
-
+	ctx.View.Chat.SetMessages([]components.Message{{Content: fmt.Sprintf("No Search Results Found For %v", searchTerm)}})
 	// Remove the border-label in the chat-pane
 	ctx.View.Chat.SetBorderLabel("")
+	ctx.Focus = context.ChatFocus
 }
 
 func actionChangeThread(ctx *context.AppContext) {
@@ -757,7 +752,7 @@ func actionSetPresenceAll(ctx *context.AppContext) {
 func actionFetchUnreadStatuses(ctx *context.AppContext) {
 
 	// TODO: make async?
-	var totalConversations float64 = float64(len(ctx.Service.Conversations))
+	var totalConversations = len(ctx.Service.Conversations)
 
 	for idx, conversation := range ctx.Service.Conversations {
 
@@ -787,10 +782,9 @@ func actionFetchUnreadStatuses(ctx *context.AppContext) {
 			}
 		}
 
-		ctx.View.Channels.LoadingMessage = fmt.Sprintf("Loading (%.2f%%)", (float64(idx) * 100.0 / totalConversations))
+		ctx.View.Channels.LoadingMessage = fmt.Sprintf("Loading Conversations (%v/%v)", idx, totalConversations)
 	}
 	ctx.View.Channels.Loaded = true
-	ctx.View.Debug.Println(fmt.Sprintf("channels loaded"))
 	termui.Render(ctx.View.Channels)
 }
 

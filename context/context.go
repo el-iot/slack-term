@@ -66,6 +66,9 @@ func CreateAppContext(flgConfig string, flgToken string, flgDebug bool, version 
 		}
 	}
 
+	// Add the debug
+	config.Debug = flgDebug
+
 	// Create desktop notifier
 	var notify *notificator.Notificator
 	if config.Notify != "" {

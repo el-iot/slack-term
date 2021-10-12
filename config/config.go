@@ -28,6 +28,7 @@ type Config struct {
 	KeyMap       map[string]keyMapping `json:"key_map"`
 	Theme        Theme                 `json:"theme"`
 	UnreadOnly   bool                  `json:"show_unread_only"`
+	Debug        bool                  `json:"debug"`
 }
 
 type keyMapping map[string]string
@@ -140,7 +141,7 @@ func getDefaultConfig() Config {
 				"<left>":      "cursor-left",
 				"<right>":     "cursor-right",
 				"<escape>":    "clear-input",
-				"<enter>":     "clear-input",
+				"<C-l>":       "clear-input",
 				"<backspace>": "backspace",
 				"C-8":         "backspace",
 				"<delete>":    "delete",

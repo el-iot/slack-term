@@ -108,10 +108,11 @@ type Channels struct {
 	LoadingMessage  string                  // a loading message to display
 	itemsRendered   int                     // the number of items currently rendered on screen
 	channelIDs      []string                // sorted list of channel IDs; the nth sortedChannels has the nth alphabetically significant ChannelItem.Name
+	Debug           *Debug
 }
 
 // CreateChannels is the constructor for the Channels component
-func CreateChannelsComponent(height int, unreadOnly bool) *Channels {
+func CreateChannelsComponent(height int, unreadOnly bool, debug *Debug) *Channels {
 	channels := &Channels{
 		List: termui.NewList(),
 	}
@@ -126,6 +127,7 @@ func CreateChannelsComponent(height int, unreadOnly bool) *Channels {
 	channels.ChannelItems = make(map[string]*ChannelItem)
 	channels.Loaded = false
 	channels.LoadingMessage = ""
+	channels.Debug = debug
 
 	return channels
 }
@@ -215,6 +217,16 @@ func (c *Channels) Buffer() termui.Buffer {
 				},
 			)
 			x++
+		}
+	}
+
+	if c.itemsRendered == 0 {
+		y := c.minY()
+		x := c.List.InnerBounds().Min.X
+		cells := termui.DefaultTxBuilder.Build("No Notifications", c.List.ItemFgColor, c.List.ItemBgColor)
+		for _, cell := range cells {
+			buf.Set(x, y, cell)
+			x += cell.Width()
 		}
 	}
 
@@ -408,6 +420,7 @@ func (c *Channels) ScrollToChannel(channelID string) {
 // be the channel that has been found
 func (c *Channels) Search(term string) (resultCount int) {
 
+	// ? Clear the existing search results
 	for _, chn := range c.ChannelItems {
 		if chn.IsSearchResult {
 			chn.IsSearchResult = false
@@ -533,6 +546,7 @@ func (c *Channels) minY() int {
 	return c.List.InnerBounds().Min.Y
 }
 
+// shouldBeVisible returns whether or not a given channel should be visible
 func (c *Channels) shouldBeVisible(chn *ChannelItem) bool {
 
 	if !c.UnreadOnly {

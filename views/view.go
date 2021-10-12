@@ -19,12 +19,16 @@ type View struct {
 }
 
 func CreateView(config *config.Config, svc *service.SlackService) (*View, error) {
+
 	// Create Input component
 	input := components.CreateInputComponent()
 
+	// Debug: create the component
+	debug := components.CreateDebugComponent(input.Par.Height, config.Debug)
+
 	// Channels: create the component
 	sideBarHeight := termui.TermHeight() - input.Par.Height
-	channels := components.CreateChannelsComponent(sideBarHeight, config.UnreadOnly)
+	channels := components.CreateChannelsComponent(sideBarHeight, config.UnreadOnly, debug)
 
 	// Channels: fill the component
 	slackChans, err := svc.GetChannels()
@@ -67,9 +71,6 @@ func CreateView(config *config.Config, svc *service.SlackService) (*View, error)
 			)
 		}
 	}
-
-	// Debug: create the component
-	debug := components.CreateDebugComponent(input.Par.Height)
 
 	// Mode: create the component
 	mode := components.CreateModeComponent()

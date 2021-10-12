@@ -39,7 +39,7 @@ GLOBAL OPTIONS:
 var (
 	flgConfig string
 	flgToken  string
-	flgDebug  bool
+	FlgDebug  bool
 	flgUsage  bool
 )
 
@@ -64,7 +64,7 @@ func init() {
 	)
 
 	flag.BoolVar(
-		&flgDebug,
+		&FlgDebug,
 		"debug",
 		false,
 		"turn on debugging",
@@ -97,7 +97,7 @@ func main() {
 	// Create context
 	usage := fmt.Sprintf(USAGE, VERSION)
 	ctx, err := context.CreateAppContext(
-		flgConfig, flgToken, flgDebug, VERSION, usage,
+		flgConfig, flgToken, FlgDebug, VERSION, usage,
 	)
 	if err != nil {
 		termbox.Close()

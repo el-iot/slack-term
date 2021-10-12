@@ -1,17 +1,20 @@
 package components
 
 import (
+	"fmt"
+
 	"github.com/erroneousboat/termui"
 )
 
 // Debug can be used to relay debugging information in the Debug component,
 // see event.go on how to use it
 type Debug struct {
-	Par  *termui.Par
-	List *termui.List
+	Par     *termui.Par
+	List    *termui.List
+	Enabled bool // whether or not debug-mode is enabled
 }
 
-func CreateDebugComponent(inputHeight int) *Debug {
+func CreateDebugComponent(inputHeight int, enabled bool) *Debug {
 	debug := &Debug{
 		List: termui.NewList(),
 	}
@@ -19,6 +22,7 @@ func CreateDebugComponent(inputHeight int) *Debug {
 	debug.List.BorderLabel = "Debug"
 	debug.List.Height = termui.TermHeight() - inputHeight
 	debug.List.Overflow = "wrap"
+	debug.Enabled = enabled
 
 	return debug
 }
@@ -51,26 +55,33 @@ func (d *Debug) SetY(y int) {
 // Println will add the text to the Debug component
 func (d *Debug) Println(text string) {
 
-	return
-	// d.List.Items = append(d.List.Items, text)
+	if !d.Enabled {
+		return
+	}
 
-	// // When at the end remove first item
-	// if len(d.List.Items) > d.List.InnerBounds().Max.Y-1 {
-	// 	d.List.Items = d.List.Items[1:]
-	// }
+	d.List.Items = append(d.List.Items, text)
 
-	// termui.Render(d)
+	// When at the end remove first item
+	if len(d.List.Items) > d.List.InnerBounds().Max.Y-1 {
+		d.List.Items = d.List.Items[1:]
+	}
+
+	termui.Render(d)
 }
 
 func (d *Debug) Sprintf(format string, a ...interface{}) {
-	return
-	//text := fmt.Sprintf(format, a...)
-	//d.List.Items = append(d.List.Items, text)
 
-	//// When at the end remove first item
-	//if len(d.List.Items) > d.List.InnerBounds().Max.Y-1 {
-	//	d.List.Items = d.List.Items[1:]
-	//}
+	if !d.Enabled {
+		return
+	}
 
-	//termui.Render(d)
+	text := fmt.Sprintf(format, a...)
+	d.List.Items = append(d.List.Items, text)
+
+	// When at the end remove first item
+	if len(d.List.Items) > d.List.InnerBounds().Max.Y-1 {
+		d.List.Items = d.List.Items[1:]
+	}
+
+	termui.Render(d)
 }
