@@ -105,9 +105,9 @@ type Channels struct {
 	SelectedChannel string                  // index of which channel is selected from the List
 	UnreadOnly      bool                    // only show unread messages when on
 	Loaded          bool                    // wait until all channels are loaded
-	LoadingMessage  string
-	itemsRendered   int      // the number of items currently rendered on screen
-	channelIDs      []string // sorted list of channel IDs; the nth sortedChannels has the nth alphabetically significant ChannelItem.Name
+	LoadingMessage  string                  // a loading message to display
+	itemsRendered   int                     // the number of items currently rendered on screen
+	channelIDs      []string                // sorted list of channel IDs; the nth sortedChannels has the nth alphabetically significant ChannelItem.Name
 }
 
 // CreateChannels is the constructor for the Channels component

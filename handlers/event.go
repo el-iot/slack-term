@@ -396,9 +396,12 @@ func actionSearch(ctx *context.AppContext, key rune) {
 		// Only actually search when the time expires
 		term := ctx.View.Input.GetText()
 		resultCount := ctx.View.Channels.Search(term)
+		ctx.View.Channels.List.BorderLabel = fmt.Sprintf("Search: %v (%v)", term, resultCount)
 
 		if resultCount > 0 {
 			actionChangeChannel(ctx)
+		} else {
+			actionClearChat(ctx, term)
 		}
 	}()
 }
@@ -602,6 +605,18 @@ func actionChangeChannel(ctx *context.AppContext) {
 	ctx.Focus = context.ChatFocus
 }
 
+func actionClearChat(ctx *context.AppContext, searchTerm string) {
+	// Clear messages from Chat pane
+	ctx.View.Chat.ClearMessages()
+
+	// Add a message stating that no results were found in the chat-pane
+	var messages = []components.Message{{Content: fmt.Sprintf("No Search Results Found For %v", searchTerm)}}
+	ctx.View.Chat.SetMessages(messages)
+
+	// Remove the border-label in the chat-pane
+	ctx.View.Chat.SetBorderLabel("")
+}
+
 func actionChangeThread(ctx *context.AppContext) {
 	// Clear messages from Chat pane
 	ctx.View.Chat.ClearMessages()
@@ -742,7 +757,6 @@ func actionSetPresenceAll(ctx *context.AppContext) {
 func actionFetchUnreadStatuses(ctx *context.AppContext) {
 
 	// TODO: make async?
-
 	var totalConversations float64 = float64(len(ctx.Service.Conversations))
 
 	for idx, conversation := range ctx.Service.Conversations {
