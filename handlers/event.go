@@ -741,22 +741,22 @@ func actionSetPresenceAll(ctx *context.AppContext) {
 
 func actionFetchUnreadStatuses(ctx *context.AppContext) {
 
-	for _, conversation := range ctx.Service.Conversations {
+	// TODO: make async?
+
+	var totalConversations float64 = float64(len(ctx.Service.Conversations))
+
+	for idx, conversation := range ctx.Service.Conversations {
 
 		var history *slack.Channel
 		var err error
-		if conversation.IsChannel {
-			history, err = ctx.Service.Client.GetChannelInfo(conversation.ID)
-		} else {
-			history, err = ctx.Service.Client.GetConversationInfo(conversation.ID, false)
-		}
+		history, err = ctx.Service.Client.GetConversationInfo(conversation.ID, false)
 
 		if ctx.Debug {
-			ctx.View.Debug.Println(fmt.Sprintf("history retrieved: %s", conversation.Name))
+			ctx.View.Debug.Println(fmt.Sprintf("history retrieved: %v", history.Name))
 		}
 
 		if err != nil {
-			ctx.View.Debug.Println(fmt.Sprintf("history error: %v", err))
+			ctx.View.Debug.Println(fmt.Sprintf("history error: %v. isChannel: %v", err, conversation.IsChannel))
 			continue
 		}
 
@@ -769,13 +769,15 @@ func actionFetchUnreadStatuses(ctx *context.AppContext) {
 			// There's no channel selected in the channels component; select this one
 			if _, ok := ctx.View.Channels.GetSelectedChannel(); !ok {
 				ctx.View.Channels.SetSelectedChannel(conversation.ID)
-
 				actionChangeChannel(ctx)
 			}
 		}
 
-		termui.Render(ctx.View.Channels)
+		ctx.View.Channels.LoadingMessage = fmt.Sprintf("Loading (%.2f%%)", (float64(idx) * 100.0 / totalConversations))
 	}
+	ctx.View.Channels.Loaded = true
+	ctx.View.Debug.Println(fmt.Sprintf("channels loaded"))
+	termui.Render(ctx.View.Channels)
 }
 
 func actionScrollUpChat(ctx *context.AppContext) {

@@ -1,8 +1,6 @@
 package components
 
 import (
-	"fmt"
-
 	"github.com/erroneousboat/termui"
 )
 
@@ -52,24 +50,27 @@ func (d *Debug) SetY(y int) {
 
 // Println will add the text to the Debug component
 func (d *Debug) Println(text string) {
-	d.List.Items = append(d.List.Items, text)
 
-	// When at the end remove first item
-	if len(d.List.Items) > d.List.InnerBounds().Max.Y-1 {
-		d.List.Items = d.List.Items[1:]
-	}
+	return
+	// d.List.Items = append(d.List.Items, text)
 
-	termui.Render(d)
+	// // When at the end remove first item
+	// if len(d.List.Items) > d.List.InnerBounds().Max.Y-1 {
+	// 	d.List.Items = d.List.Items[1:]
+	// }
+
+	// termui.Render(d)
 }
 
 func (d *Debug) Sprintf(format string, a ...interface{}) {
-	text := fmt.Sprintf(format, a...)
-	d.List.Items = append(d.List.Items, text)
+	return
+	//text := fmt.Sprintf(format, a...)
+	//d.List.Items = append(d.List.Items, text)
 
-	// When at the end remove first item
-	if len(d.List.Items) > d.List.InnerBounds().Max.Y-1 {
-		d.List.Items = d.List.Items[1:]
-	}
+	//// When at the end remove first item
+	//if len(d.List.Items) > d.List.InnerBounds().Max.Y-1 {
+	//	d.List.Items = d.List.Items[1:]
+	//}
 
-	termui.Render(d)
+	//termui.Render(d)
 }

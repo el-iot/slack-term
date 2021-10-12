@@ -15,7 +15,7 @@ const (
 	IconGroup        = "☰"
 	IconIM           = "●"
 	IconMpIM         = "☰"
-	IconNotification = "*"
+	IconNotification = "!"
 
 	PresenceAway   = "away"
 	PresenceActive = "active"
@@ -104,8 +104,10 @@ type Channels struct {
 	SearchPosition  int                     // current position in search results
 	SelectedChannel string                  // index of which channel is selected from the List
 	UnreadOnly      bool                    // only show unread messages when on
-	itemsRendered   int                     // the number of items currently rendered on screen
-	channelIDs      []string                // sorted list of channel IDs; the nth sortedChannels has the nth alphabetically significant ChannelItem.Name
+	Loaded          bool                    // wait until all channels are loaded
+	LoadingMessage  string
+	itemsRendered   int      // the number of items currently rendered on screen
+	channelIDs      []string // sorted list of channel IDs; the nth sortedChannels has the nth alphabetically significant ChannelItem.Name
 }
 
 // CreateChannels is the constructor for the Channels component
@@ -122,6 +124,8 @@ func CreateChannelsComponent(height int, unreadOnly bool) *Channels {
 	channels.Offset = 0
 	channels.UnreadOnly = unreadOnly
 	channels.ChannelItems = make(map[string]*ChannelItem)
+	channels.Loaded = false
+	channels.LoadingMessage = ""
 
 	return channels
 }
@@ -142,7 +146,7 @@ func (c *Channels) ListChannels() (items []*ChannelItem) {
 		return
 	}
 
-	// filter by messages that are either unread or search results ( always show selected channel)
+	// filter by messages that are either unread or search results (always show selected channel)
 	for _, id := range c.channelIDs {
 
 		chn := c.ChannelItems[id]
@@ -160,6 +164,17 @@ func (c *Channels) Buffer() termui.Buffer {
 
 	c.itemsRendered = 0
 
+	if !c.Loaded {
+		y := c.minY()
+		x := c.List.InnerBounds().Min.X
+		cells := termui.DefaultTxBuilder.Build(c.LoadingMessage, c.List.ItemFgColor, c.List.ItemBgColor)
+		for _, cell := range cells {
+			buf.Set(x, y, cell)
+			x += cell.Width()
+		}
+		return buf
+	}
+
 	for i, item := range c.ListChannels()[c.Offset:] {
 
 		y := c.minY() + i
@@ -174,7 +189,7 @@ func (c *Channels) Buffer() termui.Buffer {
 		var cells []termui.Cell
 		if y == c.CursorPosition {
 			cells = termui.DefaultTxBuilder.Build(
-				item.ToString(), c.List.ItemBgColor, c.List.ItemFgColor)
+				">>>"+item.ToString(), c.List.ItemFgColor, c.List.ItemBgColor)
 		} else {
 			cells = termui.DefaultTxBuilder.Build(
 				item.ToString(), c.List.ItemFgColor, c.List.ItemBgColor)
@@ -191,24 +206,14 @@ func (c *Channels) Buffer() termui.Buffer {
 
 		// When not at the end of the pane fill it up empty characters
 		for x < c.List.InnerBounds().Max.X {
-			if y == c.CursorPosition {
-				buf.Set(x, y,
-					termui.Cell{
-						Ch: ' ',
-						Fg: c.List.ItemBgColor,
-						Bg: c.List.ItemFgColor,
-					},
-				)
-			} else {
-				buf.Set(
-					x, y,
-					termui.Cell{
-						Ch: ' ',
-						Fg: c.List.ItemFgColor,
-						Bg: c.List.ItemBgColor,
-					},
-				)
-			}
+			buf.Set(
+				x, y,
+				termui.Cell{
+					Ch: ' ',
+					Fg: c.List.ItemFgColor,
+					Bg: c.List.ItemBgColor,
+				},
+			)
 			x++
 		}
 	}

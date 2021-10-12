@@ -409,7 +409,6 @@ func (s *SlackService) GetMessages(channelID string, count int) ([]components.Me
 		ChannelID: channelID,
 		Limit:     count,
 		Inclusive: false,
-		Unreads:   true,
 	}
 
 	history, err := s.Client.GetConversationHistory(&historyParams)
