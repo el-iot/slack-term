@@ -29,7 +29,6 @@ func CreateChatComponent(inputHeight int) *Chat {
 
 	chat.List.Height = termui.TermHeight() - inputHeight
 	chat.List.Overflow = "wrap"
-
 	return chat
 }
 

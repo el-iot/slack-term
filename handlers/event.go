@@ -82,13 +82,6 @@ func eventHandler(ctx *context.AppContext) {
 			ev := <-ctx.EventQueue
 			handleTermboxEvents(ctx, ev)
 			handleMoreTermboxEvents(ctx, ev)
-
-			// Place your debugging statements here
-			if ctx.Debug {
-				ctx.View.Debug.Println(
-					"event received",
-				)
-			}
 		}
 	}()
 }
@@ -782,7 +775,7 @@ func actionFetchUnreadStatuses(ctx *context.AppContext) {
 			}
 		}
 
-		ctx.View.Channels.LoadingMessage = fmt.Sprintf("Loading Conversations (%v/%v)", idx, totalConversations)
+		ctx.View.Channels.LoadingMessage = fmt.Sprintf("Loading (%v/%v)", idx, totalConversations)
 	}
 	ctx.View.Channels.Loaded = true
 	termui.Render(ctx.View.Channels)
